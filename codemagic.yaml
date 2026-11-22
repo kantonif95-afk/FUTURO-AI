@@ -3,15 +3,17 @@ workflows:
     name: FUTURO AI Android APK
     max_build_duration: 60
     environment:
-      android: latest
       java: 17
     scripts:
       - name: Extract Android project
         script: |
-          unzip -o FUTURO_AI_Proyecto_Android.zip -d .
-      - name: Build debug APK
+          mkdir -p android_project
+          unzip -o FUTURO_AI_Proyecto_Android.zip -d android_project
+      - name: Generate Gradle wrapper and build debug APK
         script: |
-          gradle --version
-          gradle assembleDebug
+          cd android_project
+          gradle wrapper --gradle-version 8.9
+          chmod +x gradlew
+          ./gradlew assembleDebug
     artifacts:
-      - app/build/outputs/apk/debug/*.apk
+      - android_project/app/build/outputs/apk/debug/*.apk
