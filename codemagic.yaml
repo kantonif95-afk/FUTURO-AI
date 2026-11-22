@@ -8,8 +8,11 @@ workflows:
     scripts:
       - name: Extraer proyecto nuevo
         script: |
-          mkdir -p android_project
-          unzip -o FUTURO_AI_Android_v2.zip -d android_project
+          echo "Archivos disponibles:"
+          ls -la
+          echo "Buscando el ZIP:"
+          find . -maxdepth 3 -iname "*.zip"
+          unzip -o "./FUTURO_AI_Android_v2.zip" -d android_project
       - name: Compilar APK
         script: |
           cd android_project
