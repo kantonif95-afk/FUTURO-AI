@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Preu Futuro - Preparación Preuniversitaria</title>
+    
+    <!-- Metadatos PWA para Android & iOS -->
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PreuFuturo">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Plataforma interactiva de preparación y simulacros para exámenes preuniversitarios.">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- FontAwesome Iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Estilos de soporte para PWA y animaciones -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @keyframes pulse-subtle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col text-slate-800 antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- App Root Container -->
+    <div id="app" class="min-h-screen flex flex-col max-w-md mx-auto w-full bg-white shadow-2xl relative pb-16 sm:pb-0">
+        
+        <!-- Header Principal (Global) -->
+        <header id="mainHeader" class="bg-gradient-to-r from-brand-700 via-brand-600 to-indigo-800 text-white p-4 sticky top-0 z-30 shadow-md flex justify-between items-center hidden">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center font-bold text-lg shadow-inner">
+                    🎓
+                </div>
+                <div>
+                    <h1 class="font-bold text-base leading-tight">Preu Futuro</h1>
+                    <p id="headerUserLabel" class="text-xs text-brand-100 opacity-90 truncate max-w-[170px]"></p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="togglePWAInstallModal()" class="px-2.5 py-1.5 bg-emerald-500/90 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg flex items-center space-x-1 shadow transition">
+                    <i class="fa-solid fa-download text-[11px]"></i>
+                    <span>Instalar</span>
+                </button>
+                <button onclick="logout()" class="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-xs transition" title="Cerrar Sesión">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- PWA Banner Top Bar (si no está instalado) -->
+        <div id="pwaNoticeBar" class="bg-indigo-900 text-white text-xs px-4 py-2 flex items-center justify-between shadow-inner">
+            <div class="flex items-center space-x-2 truncate">
+                <i class="fa-solid fa-mobile-screen-button text-emerald-400"></i>
+                <span class="truncate">¿Quieres usarlo como App en tu celular?</span>
+            </div>
+            <button onclick="togglePWAInstallModal()" class="text-emerald-400 font-bold underline text-xs shrink-0 ml-2">
+                Ver cómo
+            </button>
+        </div>
+
+        <!-- CONTENIDO DINÁMICO DE PANTALLAS -->
+        <main class="flex-1 flex flex-col overflow-y-auto hide-scrollbar relative">
+            
+            <!-- 1. PANTALLA DE LOGIN -->
+            <section id="loginScreen" class="flex-1 flex flex-col justify-between p-6 bg-slate-50">
+                <div class="mt-4 text-center">
+                    <div class="w-20 h-20 bg-brand-600 rounded-3xl mx-auto flex items-center justify-center shadow-xl shadow-brand-500/30 text-4xl mb-4 transform -rotate-3 hover:rotate-0 transition duration-300">
+                        🚀
+                    </div>
+                    <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Preu Futuro</h2>
+                    <p class="text-xs text-slate-500 mt-1 font-medium">Plataforma de Evaluación y Simulacros Preuniversitarios</p>
+                </div>
+
+                <!-- Selector de Modo Login -->
+                <div class="my-6">
+                    <div class="bg-slate-200/80 p-1 rounded-2xl flex text-xs font-bold mb-6">
+                        <button id="tabStudentBtn" onclick="switchLoginTab('student')" class="flex-1 py-2.5 rounded-xl transition-all duration-200 shadow bg-white text-brand-700">
+                            <i class="fa-solid fa-user-graduate mr-1.5"></i> Estudiante
+                        </button>
+                        <button id="tabAdminBtn" onclick="switchLoginTab('admin')" class="flex-1 py-2.5 rounded-xl transition-all duration-200 text-slate-600 hover:text-slate-900">
+                            <i class="fa-solid fa-user-shield mr-1.5"></i> Administrador
+                        </button>
+                    </div>
+
+                    <!-- Formulario Estudiante -->
+                    <form id="studentLoginForm" onsubmit="handleStudentLogin(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Nombre Completo</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                    <i class="fa-regular fa-user"></i>
+                                </span>
+                                <input type="text" id="studentNameInput" required placeholder="Ej. Camila Morales" class="w-full pl-9 pr-3 py-3 text-sm rounded-xl border border-slate-300 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 bg-white transition">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Código Único de Acceso</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                    <i class="fa-solid fa-key text-xs"></i>
+                                </span>
+                                <input type="text" id="studentCodeInput" required placeholder="Ej. PREU-2026" class="w-full pl-9 pr-3 py-3 text-sm rounded-xl border border-slate-300 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 bg-white uppercase transition tracking-wider font-mono">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 active:scale-[0.99] text-white font-bold rounded-xl shadow-lg shadow-brand-500/25 transition flex items-center justify-center space-x-2 text-sm mt-2">
+                            <span>Ingresar al Simulador</span>
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </button>
+
+                        <!-- Códigos de prueba rápidos -->
+                        <div class="mt-4 p-3 bg-indigo-50 border border-indigo-100 rounded-xl">
+                            <p class="text-[11px] font-semibold text-indigo-900 mb-1.5 flex items-center">
+                                <i class="fa-solid fa-circle-info mr-1 text-indigo-500"></i> Códigos de demostración activos:
+                            </p>
+                            <div class="flex flex-wrap gap-1.5" id="demoCodesContainer">
+                                <!-- Generado dinámicamente -->
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Formulario Administrador -->
+                    <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="space-y-4 hidden">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Contraseña de Administrador</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                    <i class="fa-solid fa-lock"></i>
+                                </span>
+                                <input type="password" id="adminPassInput" required placeholder="••••••••" class="w-full pl-9 pr-3 py-3 text-sm rounded-xl border border-slate-300 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 bg-white transition">
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1">Clave por defecto: <code class="bg-slate-200 px-1 py-0.5 rounded text-slate-700 font-bold">admin2026</code></p>
+                        </div>
+
+                        <button type="submit" class="w-full py-3.5 bg-slate-900 hover:bg-black active:scale-[0.99] text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center space-x-2 text-sm">
+                            <span>Acceder al Panel Admin</span>
+                            <i class="fa-solid fa-shield-halved text-xs"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="text-center text-[11px] text-slate-400 py-2">
+                    Preu Futuro &copy; 2026 • Modo App Portátil PWA
+                </div>
+            </section>
+
+            <!-- 2. PANEL ESTUDIANTE -->
+            <section id="studentDashboard" class="flex-1 flex flex-col p-4 bg-slate-50 space-y-4 hidden">
+                
+                <!-- Tarjeta de Bienvenida y Resumen -->
+                <div class="bg-gradient-to-r from-brand-600 to-indigo-700 text-white rounded-2xl p-4 shadow-lg relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 text-white/10 text-8xl font-extrabold select-none pointer-events-none">
+                        100
+                    </div>
+                    <div class="relative z-10">
+                        <span class="inline-block px-2.5 py-0.5 bg-white/20 backdrop-blur rounded-full text-[11px] font-semibold text-brand-100 mb-1">
+                            Estudiante Activo
+                        </span>
+                        <h2 id="welcomeStudentName" class="text-xl font-bold">Hola, Estudiante</h2>
+                        <p id="studentCodeBadge" class="text-xs text-brand-100 mt-0.5 font-mono"></p>
+                        
+                        <div class="mt-4 grid grid-cols-2 gap-2 bg-white/10 backdrop-blur p-2.5 rounded-xl border border-white/15">
+                            <div>
+                                <p class="text-[10px] text-brand-200 uppercase font-bold tracking-wider">Promedio General</p>
+                                <p id="studentAvgScore" class="text-lg font-extrabold">0 / 100</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-brand-200 uppercase font-bold tracking-wider">Simulacros Hechos</p>
+                                <p id="studentTotalTests" class="text-lg font-extrabold">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-pestañas Estudiante: Materias / Mi Historial -->
+                <div class="flex border-b border-slate-200">
+                    <button id="studentTabMateriasBtn" onclick="switchStudentTab('materias')" class="py-2 px-4 text-xs font-bold border-b-2 border-brand-600 text-brand-600">
+                        <i class="fa-solid fa-book-open mr-1"></i> Materias de Examen
+                    </button>
+                    <button id="studentTabHistorialBtn" onclick="switchStudentTab('historial')" class="py-2 px-4 text-xs font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-700">
+                        <i class="fa-solid fa-clock-rotate-left mr-1"></i> Mi Historial
+                    </button>
+                </div>
+
+                <!-- Vista Materias -->
+                <div id="studentMateriasView" class="space-y-3">
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Selecciona una materia para iniciar</h3>
+                    <div id="subjectsListContainer" class="space-y-2.5">
+                        <!-- Generado por JS -->
+                    </div>
+                </div>
+
+                <!-- Vista Historial Personal -->
+                <div id="studentHistorialView" class="space-y-3 hidden">
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tus Resultados Recientes</h3>
+                    <div id="personalHistoryContainer" class="space-y-2">
+                        <!-- Generado por JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. PANTALLA SIMULACRO EN CURSO -->
+            <section id="quizScreen" class="flex-1 flex flex-col bg-white hidden">
+                <!-- Barra superior de simulacro -->
+                <div class="p-3 bg-slate-900 text-white flex justify-between items-center shadow">
+                    <button onclick="confirmExitQuiz()" class="text-slate-400 hover:text-white text-xs px-2 py-1 rounded">
+                        <i class="fa-solid fa-chevron-left mr-1"></i> Salir
+                    </button>
+                    <div class="text-center">
+                        <span id="quizSubjectTitle" class="text-xs font-bold text-brand-300 block"></span>
+                        <span id="quizProgressText" class="text-[10px] text-slate-400">Pregunta 1 de 6</span>
+                    </div>
+                    <div class="bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 flex items-center space-x-1.5">
+                        <i class="fa-regular fa-clock text-amber-400 text-xs"></i>
+                        <span id="quizTimer" class="font-mono text-xs font-bold text-amber-300">00:00</span>
+                    </div>
+                </div>
+
+                <!-- Barra de progreso visual -->
+                <div class="w-full bg-slate-100 h-1.5">
+                    <div id="quizProgressBar" class="bg-brand-600 h-1.5 transition-all duration-300 w-0"></div>
+                </div>
+
+                <!-- Área de Pregunta -->
+                <div class="flex-1 p-5 overflow-y-auto flex flex-col justify-between">
+                    <div>
+                        <span class="text-[10px] font-bold tracking-wider uppercase text-brand-600 bg-brand-50 px-2 py-0.5 rounded-md">
+                            Pregunta N° <span id="currentQuestionNum">1</span>
+                        </span>
+                        <h3 id="questionText" class="text-base font-bold text-slate-800 mt-2 leading-relaxed">
+                            <!-- Enunciado de la pregunta -->
+                        </h3>
+
+                        <!-- Opciones de Respuesta -->
+                        <div id="optionsContainer" class="mt-5 space-y-2.5">
+                            <!-- Generado por JS -->
+                        </div>
+
+                        <!-- Caja de Explicación Feedback -->
+                        <div id="feedbackBox" class="mt-4 p-3.5 rounded-xl text-xs leading-relaxed hidden">
+                            <p id="feedbackStatus" class="font-bold flex items-center mb-1"></p>
+                            <p id="feedbackText" class="text-slate-700"></p>
+                        </div>
+                    </div>
+
+                    <!-- Botón Siguiente / Finalizar -->
+                    <div class="pt-4 mt-4 border-t border-slate-100 flex justify-end">
+                        <button id="nextQuestionBtn" onclick="nextQuestion()" disabled class="w-full py-3 bg-slate-300 text-slate-500 font-bold rounded-xl transition flex items-center justify-center space-x-2 text-sm shadow">
+                            <span>Siguiente Pregunta</span>
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. PANTALLA RESULTADO SIMULACRO -->
+            <section id="quizResultScreen" class="flex-1 flex flex-col p-6 bg-slate-50 justify-center items-center text-center hidden">
+                <div class="w-24 h-24 rounded-full flex items-center justify-center text-5xl mb-4 shadow-xl border-4" id="resultIconBadge">
+                    🏆
+                </div>
+                
+                <h2 id="resultTitle" class="text-2xl font-black text-slate-900">¡Simulacro Completado!</h2>
+                <p id="resultSubject" class="text-xs font-semibold text-brand-600 mt-1 uppercase tracking-wider"></p>
+
+                <div class="my-6 bg-white p-6 rounded-2xl shadow-lg border border-slate-100 w-full max-w-xs space-y-4">
+                    <div>
+                        <p class="text-xs text-slate-400 font-semibold uppercase">Calificación Final</p>
+                        <p id="resultScore" class="text-4xl font-extrabold text-slate-900 my-1">0 / 100</p>
+                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-2">
+                            <div id="resultScoreBar" class="h-2 bg-emerald-500 rounded-full transition-all duration-700" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-left pt-2 border-t border-slate-100">
+                        <div class="bg-slate-50 p-2.5 rounded-xl">
+                            <span class="text-[10px] text-slate-400 block font-semibold">Aciertos</span>
+                            <span id="resultCorrectCount" class="text-sm font-bold text-emerald-600">0 / 0</span>
+                        </div>
+                        <div class="bg-slate-50 p-2.5 rounded-xl">
+                            <span class="text-[10px] text-slate-400 block font-semibold">Tiempo Usado</span>
+                            <span id="resultTimeSpent" class="text-sm font-bold text-slate-700">0m 0s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="showStudentDashboard()" class="w-full max-w-xs py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-500/25 transition">
+                    Volver al Inicio
+                </button>
+            </section>
+
+            <!-- 5. PANEL DE ADMINISTRADOR -->
+            <section id="adminDashboard" class="flex-1 flex flex-col p-4 bg-slate-50 space-y-4 hidden">
+                <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-md flex justify-between items-center">
+                    <div>
+                        <span class="px-2 py-0.5 bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-bold rounded">Modo Administrador</span>
+                        <h2 class="text-lg font-bold mt-1">Gestión Preu Futuro</h2>
+                    </div>
+                    <i class="fa-solid fa-sliders text-2xl text-slate-700"></i>
+                </div>
+
+                <!-- Sub-pestañas Admin -->
+                <div class="flex border-b border-slate-200">
+                    <button id="adminTabCodigosBtn" onclick="switchAdminTab('codigos')" class="py-2 px-3 text-xs font-bold border-b-2 border-brand-600 text-brand-600">
+                        <i class="fa-solid fa-key mr-1"></i> Códigos
+                    </button>
+                    <button id="adminTabRendimientoBtn" onclick="switchAdminTab('rendimiento')" class="py-2 px-3 text-xs font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-700">
+                        <i class="fa-solid fa-chart-line mr-1"></i> Rendimiento
+                    </button>
+                    <button id="adminTabPreguntasBtn" onclick="switchAdminTab('preguntas')" class="py-2 px-3 text-xs font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-700">
+                        <i class="fa-solid fa-list-check mr-1"></i> Preguntas
+                    </button>
+                </div>
+
+                <!-- Vista 1: Gestión de Códigos -->
+                <div id="adminCodigosView" class="space-y-4">
+                    <!-- Formulario crear nuevo código -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Crear Nuevo Código de Estudiante</h3>
+                        <form onsubmit="handleCreateCode(event)" class="space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-500 mb-1">Nombre o Grupo</label>
+                                    <input type="text" id="newCodeName" required placeholder="Ej. Mateo Silva" class="w-full p-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-brand-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-500 mb-1">Código Personalizado (opcional)</label>
+                                    <input type="text" id="newCodeCustom" placeholder="Ej. EST-999" class="w-full p-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-brand-500 uppercase font-mono">
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs shadow transition">
+                                <i class="fa-solid fa-plus mr-1"></i> Registrar Código
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Lista de Códigos Existententes -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="p-3 bg-slate-100 border-b border-slate-200 flex justify-between items-center">
+                            <h4 class="text-xs font-bold text-slate-700">Códigos Registrados (<span id="totalCodesCount">0</span>)</h4>
+                        </div>
+                        <div id="adminCodesList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto">
+                            <!-- JS Inject -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vista 2: Seguimiento de Rendimiento -->
+                <div id="adminRendimientoView" class="space-y-4 hidden">
+                    <!-- Tarjetas métricas globales -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm text-center">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Estudiantes</p>
+                            <p id="adminStatStudents" class="text-base font-black text-brand-600">0</p>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm text-center">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Simulacros</p>
+                            <p id="adminStatTotalTests" class="text-base font-black text-indigo-600">0</p>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm text-center">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Prom. Global</p>
+                            <p id="adminStatAvg" class="text-base font-black text-emerald-600">0</p>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de estudiantes con puntajes -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="p-3 bg-slate-100 border-b border-slate-200">
+                            <h4 class="text-xs font-bold text-slate-700">Resultados por Estudiante</h4>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-100">
+                                        <th class="p-3">Estudiante</th>
+                                        <th class="p-3">Código</th>
+                                        <th class="p-3">Pruebas</th>
+                                        <th class="p-3">Promedio</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminPerformanceTable" class="text-xs divide-y divide-slate-100">
+                                    <!-- JS Inject -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vista 3: Gestión de Preguntas -->
+                <div id="adminPreguntasView" class="space-y-4 hidden">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Agregar Pregunta Personalizada</h3>
+                        <form onsubmit="handleAddQuestion(event)" class="space-y-2.5">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-1">Materia</label>
+                                <select id="newQSubject" class="w-full p-2.5 text-xs rounded-xl border border-slate-300 bg-white">
+                                    <option value="matematicas">Matemáticas</option>
+                                    <option value="lengua">Lengua y Literatura</option>
+                                    <option value="logica">Lógica Matemática</option>
+                                    <option value="quimica">Química</option>
+                                    <option value="geometria">Geometría</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-1">Enunciado de la Pregunta</label>
+                                <textarea id="newQText" required rows="2" placeholder="Escribe aquí la pregunta..." class="w-full p-2.5 text-xs rounded-xl border border-slate-300"></textarea>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" id="newQOpt0" required placeholder="Opción A" class="p-2 text-xs rounded-xl border border-slate-300">
+                                <input type="text" id="newQOpt1" required placeholder="Opción B" class="p-2 text-xs rounded-xl border border-slate-300">
+                                <input type="text" id="newQOpt2" required placeholder="Opción C" class="p-2 text-xs rounded-xl border border-slate-300">
+                                <input type="text" id="newQOpt3" required placeholder="Opción D" class="p-2 text-xs rounded-xl border border-slate-300">
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-500 mb-1">Respuesta Correcta</label>
+                                    <select id="newQCorrect" class="w-full p-2 text-xs rounded-xl border border-slate-300 bg-white">
+                                        <option value="0">Opción A</option>
+                                        <option value="1">Opción B</option>
+                                        <option value="2">Opción C</option>
+                                        <option value="3">Opción D</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-500 mb-1">Explicación breve</label>
+                                    <input type="text" id="newQExplanation" required placeholder="¿Por qué es correcta?" class="p-2 text-xs rounded-xl border border-slate-300">
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full py-2.5 bg-brand-600 text-white font-bold rounded-xl text-xs shadow hover:bg-brand-700 transition">
+                                Guardar Pregunta en Banco
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- NAVEGACIÓN INFERIOR PARA MÓVIL (Visible solo al estar logueado) -->
+        <nav id="bottomNav" class="bg-white border-t border-slate-200 fixed bottom-0 left-0 right-0 max-w-md mx-auto flex justify-around p-2 z-20 hidden">
+            <button id="navHomeBtn" onclick="showStudentDashboard()" class="flex flex-col items-center text-brand-600 font-bold text-[10px]">
+                <i class="fa-solid fa-house text-base mb-0.5"></i>
+                <span>Inicio</span>
+            </button>
+            <button id="navHistorialBtn" onclick="showStudentDashboard(); switchStudentTab('historial');" class="flex flex-col items-center text-slate-400 font-semibold text-[10px] hover:text-slate-600">
+                <i class="fa-solid fa-award text-base mb-0.5"></i>
+                <span>Mi Promedio</span>
+            </button>
+            <button onclick="togglePWAInstallModal()" class="flex flex-col items-center text-emerald-600 font-bold text-[10px]">
+                <i class="fa-solid fa-mobile-screen text-base mb-0.5"></i>
+                <span>Instalar App</span>
+            </button>
+        </nav>
+
+        <!-- MODAL INSTRUCCIONES INSTALACIÓN PWA -->
+        <div id="pwaModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4 hidden">
+            <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4 animate-pulse-subtle">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-brand-600 text-white text-2xl rounded-2xl flex items-center justify-center shadow-md">
+                            🎓
+                        </div>
+                        <div>
+                            <h3 class="font-extrabold text-slate-900 text-base">Instalar Preu Futuro</h3>
+                            <p class="text-xs text-slate-500">En tu teléfono Android</p>
+                        </div>
+                    </div>
+                    <button onclick="togglePWAInstallModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100 text-xs">
+                    <div class="flex items-start space-x-3">
+                        <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center shrink-0 text-xs">1</span>
+                        <p class="text-slate-700">Toca el botón de <strong>3 puntos (⋮)</strong> en la esquina superior derecha de Google Chrome.</p>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center shrink-0 text-xs">2</span>
+                        <p class="text-slate-700">Selecciona <strong>"Agregar a la pantalla principal"</strong> o <strong>"Instalar aplicación"</strong>.</p>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center shrink-0 text-xs">3</span>
+                        <p class="text-slate-700">¡Listo! Se creará el ícono en tu pantalla de inicio y funcionará como una app nativa.</p>
+                    </div>
+                </div>
+
+                <button onclick="togglePWAInstallModal()" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow">
+                    Entendido
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- LOGICA JAVASCRIPT APP -->
+    <script>
+        /* ==========================================
+           DATOS INICIALES Y BANCOS DE PREGUNTAS REALES
+           ========================================== */
+        const DEFAULT_SUBJECTS = [
+            { id: 'matematicas', name: 'Matemáticas', icon: 'fa-calculator', color: 'from-blue-500 to-indigo-600' },
+            { id: 'lengua', name: 'Lengua y Literatura', icon: 'fa-book', color: 'from-purple-500 to-pink-600' },
+            { id: 'logica', name: 'Lógica Matemática', icon: 'fa-brain', color: 'from-amber-500 to-orange-600' },
+            { id: 'quimica', name: 'Química', icon: 'fa-flask', color: 'from-emerald-500 to-teal-600' },
+            { id: 'geometria', name: 'Geometría', icon: 'fa-shapes', color: 'from-cyan-500 to-blue-600' }
+        ];
+
+        const INITIAL_QUESTIONS = {
+            matematicas: [
+                {
+                    q: "Si 2^(x + 1) = 32, ¿cuál es el valor de x?",
+                    options: ["x = 3", "x = 4", "x = 5", "x = 2"],
+                    correct: 1,
+                    explanation: "32 se puede expresar como 2^5. Por lo tanto, x + 1 = 5, lo que da x = 4."
+                },
+                {
+                    q: "¿Cuál es el dominio de la función f(x) = 3 / (x - 5)?",
+                    options: ["Todos los Reales", "Reales excepto x = 5", "Reales excepto x = 3", "x > 5"],
+                    correct: 1,
+                    explanation: "El denominador no puede ser cero. Por ende, x - 5 ≠ 0, lo que excluye a x = 5."
+                },
+                {
+                    q: "Resuelva la ecuación cuadrática: x² - 7x + 12 = 0",
+                    options: ["x = 2, x = 6", "x = -3, x = -4", "x = 3, x = 4", "x = 1, x = 12"],
+                    correct: 2,
+                    explanation: "Factorizando: (x - 3)(x - 4) = 0. Las raíces son x = 3 y x = 4."
+                },
+                {
+                    q: "Si el 20% de un número es 40, ¿cuál es el 50% de dicho número?",
+                    options: ["80", "100", "120", "200"],
+                    correct: 1,
+                    explanation: "El número total es 40 / 0.20 = 200. El 50% de 200 es 100."
+                },
+                {
+                    q: "Simplifique la expresión: (x² - 9) / (x - 3)",
+                    options: ["x - 3", "x + 3", "x + 9", "x² + 3"],
+                    correct: 1,
+                    explanation: "(x² - 9) es una diferencia de cuadrados (x-3)(x+3). Al dividir por (x-3) queda (x+3)."
+                },
+                {
+                    q: "¿Cuál es la derivada de la función f(x) = 3x³ - 4x + 7?",
+                    options: ["9x² - 4", "6x² - 4", "9x³ - 4x", "3x² - 4"],
+                    correct: 0,
+                    explanation: "Aplicando la regla de la potencia: f'(x) = 3*(3x²) - 4 = 9x² - 4."
+                }
+            ],
+            lengua: [
+                {
+                    q: "Identifique el sinónimo contextual de la palabra 'efímero':",
+                    options: ["Eterno", "Pasajero", "Resistente", "Oscuro"],
+                    correct: 1,
+                    explanation: "'Efímero' se refiere a aquello que dura muy poco tiempo o es pasajero."
+                },
+                {
+                    q: "¿Qué figura literaria se encuentra en: 'El ruido con que conmovía la noche el trueno errante'?",
+                    options: ["Metáfora", "Hipérbaton", "Símil", "Anáfora"],
+                    correct: 1,
+                    explanation: "El orden sintáctico habitual ha sido alterado, lo cual constituye un Hipérbaton."
+                },
+                {
+                    q: "¿Cuál de las siguientes palabras está escrita correctamente según la regla de acentuación?",
+                    options: ["Cónyuge", "Conyuge", "Cóñuge", "Conyugé"],
+                    correct: 0,
+                    explanation: "'Cónyuge' es una palabra esdrújula y siempre lleva tilde en la primera 'o'."
+                },
+                {
+                    q: "Identifique la oración redactada en Voz Pasiva:",
+                    options: ["El estudiante resolvió el examen.", "La obra fue escrita por el autor en 1920.", "Ellos caminaban despacio.", "Compramos frutas frescas."],
+                    correct: 1,
+                    explanation: "En la voz pasiva el sujeto recibe la acción ('La obra fue escrita por...')."
+                },
+                {
+                    q: "¿Qué función del lenguaje predomina en un manual de instrucciones de electrodomésticos?",
+                    options: ["Poética", "Expresiva", "Apelativa / Conativa", "Metalingüística"],
+                    correct: 2,
+                    explanation: "Busca guiar, influir o dar órdenes directas al receptor para realizar una acción."
+                },
+                {
+                    q: "¿Quién es el autor de la reconocida obra literaria 'Cien años de soledad'?",
+                    options: ["Mario Vargas Llosa", "Gabriel García Márquez", "Julio Cortázar", "Pablo Neruda"],
+                    correct: 1,
+                    explanation: "Escrita por el premio Nobel colombiano Gabriel García Márquez y publicada en 1967."
+                }
+            ],
+            logica: [
+                {
+                    q: "Complete la secuencia numérica: 3, 6, 12, 24, 48, ...",
+                    options: ["60", "72", "96", "108"],
+                    correct: 2,
+                    explanation: "Cada término se obtiene multiplicando el anterior por 2 (48 x 2 = 96)."
+                },
+                {
+                    q: "Si todos los A son B, y algunos B son C, ¿cuál afirmación es necesariamente verdadera?",
+                    options: ["Todos los A son C", "Algunos B son A", "Ningún A es C", "Todos los C son B"],
+                    correct: 1,
+                    explanation: "Puesto que todos los A pertenecen al grupo B, necesariamente algunos elementos de B son A."
+                },
+                {
+                    q: "Encuentre el término que falta: 2, 5, 10, 17, 26, ...",
+                    options: ["35", "37", "40", "31"],
+                    correct: 1,
+                    explanation: "La diferencia entre términos aumenta en impares: +3, +5, +7, +9, por ende +11 -> 26 + 11 = 37."
+                },
+                {
+                    q: "Tres grifos tardan 6 horas en llenar un tanque. ¿Cuánto tardarán 6 grifos idénticos?",
+                    options: ["12 horas", "3 horas", "4 horas", "2 horas"],
+                    correct: 1,
+                    explanation: "Es una regla de tres inversa: a mayor cantidad de grifos, menor tiempo (3x6 / 6 = 3 horas)."
+                },
+                {
+                    q: "En una fila de 10 personas, Ana está en el lugar 4 contando desde el frente. ¿En qué lugar está desde atrás?",
+                    options: ["6to lugar", "7mo lugar", "8vo lugar", "5to lugar"],
+                    correct: 1,
+                    explanation: "Total 10 personas - 4 del frente = 6 detrás de ella. Por tanto, desde atrás ella es la 7ma."
+                },
+                {
+                    q: "Dada la implicación P → Q: si P es Falso y Q es Verdadero, la proposición es:",
+                    options: ["Verdadera", "Falsa", "Indeterminada", "Contradicción"],
+                    correct: 0,
+                    explanation: "En la tabla de verdad del condicional, F → V da un valor de verdad Verdadero."
+                }
+            ],
+            quimica: [
+                {
+                    q: "¿Cuál es la fórmula química del Ácido Sulfúrico?",
+                    options: ["HCl", "H₂SO₄", "HNO₃", "NaOH"],
+                    correct: 1,
+                    explanation: "El ácido sulfúrico está compuesto por dos átomos de hidrógeno, uno de azufre y cuatro de oxígeno."
+                },
+                {
+                    q: "El número atómico (Z) de un elemento representa la cantidad de:",
+                    options: ["Neutrones", "Protones en el núcleo", "Electrones de valencia", "Masa total"],
+                    correct: 1,
+                    explanation: "Z indica el número de protones presentes en el núcleo atómico de cada elemento."
+                },
+                {
+                    q: "¿Qué tipo de enlace químico se forma entre el Sodio (Na) y el Cloro (Cl)?",
+                    options: ["Covalente polar", "Enlace iónico", "Covalente no polar", "Metálico"],
+                    correct: 1,
+                    explanation: "Se produce por la transferencia de un electrón de un metal (Na) a un no metal (Cl)."
+                },
+                {
+                    q: "En la escala de pH, un valor de 2 representa una sustancia:",
+                    options: ["Fuertemente básica", "Neutra", "Fuertemente ácida", "Ligeramente alcalina"],
+                    correct: 2,
+                    explanation: "Un pH menor a 7 es ácido; mientras más cercano a 0, mayor es su concentración ácida."
+                },
+                {
+                    q: "¿Cuál es la masa molar aproximada del agua (H₂O)? (H=1 g/mol, O=16 g/mol)",
+                    options: ["17 g/mol", "18 g/mol", "20 g/mol", "16 g/mol"],
+                    correct: 1,
+                    explanation: "Masa molar = (2 x 1) + 16 = 18 g/mol."
+                },
+                {
+                    q: "El cambio de estado directo de Sólido a Gaseoso sin pasar por líquido se denomina:",
+                    options: ["Evaporación", "Sublimación", "Condensación", "Fusión"],
+                    correct: 1,
+                    explanation: "La sublimación directa es la transición directa del estado sólido a la fase gaseosa."
+                }
+            ],
+            geometria: [
+                {
+                    q: "¿Cuál es el área de un triángulo con base de 8 cm y altura de 5 cm?",
+                    options: ["40 cm²", "20 cm²", "13 cm²", "30 cm²"],
+                    correct: 1,
+                    explanation: "Área del triángulo = (base x altura) / 2 = (8 x 5) / 2 = 20 cm²."
+                },
+                {
+                    q: "¿Cuánto suma la totalidad de los ángulos internos de un hexágono convexo?",
+                    options: ["360°", "540°", "720°", "900°"],
+                    correct: 2,
+                    explanation: "Fórmula: (n - 2) * 180°. Para 6 lados: (6 - 2) * 180° = 4 * 180° = 720°."
+                },
+                {
+                    q: "En un triángulo rectángulo, los catetos miden 3 cm y 4 cm. ¿Cuánto mide la hipotenusa?",
+                    options: ["5 cm", "6 cm", "7 cm", "25 cm"],
+                    correct: 0,
+                    explanation: "Por Pitágoras: c = √(3² + 4²) = √(9 + 16) = √25 = 5 cm."
+                },
+                {
+                    q: "¿Cuál es la fórmula para calcular el volumen de una esfera?",
+                    options: ["V = π r²", "V = 4/3 π r³", "V = 2 π r", "V = 1/3 π r² h"],
+                    correct: 1,
+                    explanation: "El volumen de una esfera tridimensional viene dado por V = (4/3) π r³."
+                },
+                {
+                    q: "Dos ángulos se consideran 'Complementarios' cuando la suma de sus medidas equivale a:",
+                    options: ["180°", "90°", "360°", "45°"],
+                    correct: 1,
+                    explanation: "Dos ángulos son complementarios si al sumarse dan exactamente 90°."
+                },
+                {
+                    q: "Un círculo tiene un radio de 7 cm. ¿Cuál es su perímetro aproximado? (π ≈ 3.1416)",
+                    options: ["43.98 cm", "153.9 cm", "21.99 cm", "49.00 cm"],
+                    correct: 0,
+                    explanation: "Perímetro (longitud) = 2 * π * r = 2 * 3.1416 * 7 ≈ 43.98 cm."
+                }
+            ]
+        };
+
+        const INITIAL_CODES = [
+            { code: 'PREU-2026', name: 'Camila Morales', group: 'Grupo A', active: true, createdAt: '2026-01-10' },
+            { code: 'FUTURO-01', name: 'Mateo Delgado', group: 'Grupo B', active: true, createdAt: '2026-01-12' },
+            { code: 'EST-101', name: 'Sofia Benítez', group: 'Intensivo', active: true, createdAt: '2026-01-15' }
+        ];
+
+        const INITIAL_HISTORY = [
+            { id: 1, code: 'PREU-2026', studentName: 'Camila Morales', subjectId: 'matematicas', subjectName: 'Matemáticas', score: 83, correctCount: 5, totalCount: 6, timeSpent: 145, date: '2026-02-18 10:30' },
+            { id: 2, code: 'PREU-2026', studentName: 'Camila Morales', subjectId: 'logica', subjectName: 'Lógica Matemática', score: 100, correctCount: 6, totalCount: 6, timeSpent: 110, date: '2026-02-19 14:15' },
+            { id: 3, code: 'FUTURO-01', studentName: 'Mateo Delgado', subjectId: 'quimica', subjectName: 'Química', score: 67, correctCount: 4, totalCount: 6, timeSpent: 210, date: '2026-02-20 09:00' }
+        ];
+
+        /* ==========================================
+           GESTIÓN DE ESTADO (LOCALSTORAGE)
+           ========================================== */
+        let state = {
+            currentUser: null, // { role: 'student'|'admin', name, code }
+            codes: [],
+            questions: {},
+            history: [],
+            activeQuiz: null
+        };
+
+        function initStore() {
+            const savedCodes = localStorage.getItem('preu_codes');
+            state.codes = savedCodes ? JSON.parse(savedCodes) : INITIAL_CODES;
+
+            const savedQuestions = localStorage.getItem('preu_questions');
+            state.questions = savedQuestions ? JSON.parse(savedQuestions) : INITIAL_QUESTIONS;
+
+            const savedHistory = localStorage.getItem('preu_history');
+            state.history = savedHistory ? JSON.parse(savedHistory) : INITIAL_HISTORY;
+
+            saveStore();
+            renderDemoCodes();
+        }
+
+        function saveStore() {
+            localStorage.setItem('preu_codes', JSON.stringify(state.codes));
+            localStorage.setItem('preu_questions', JSON.stringify(state.questions));
+            localStorage.setItem('preu_history', JSON.stringify(state.history));
+        }
+
+        /* ==========================================
+           PWA MANIFEST EMBEBIDO DINÁMICAMENTE
+           ========================================== */
+        function setupPWA() {
+            // Icono SVG generado como Data URI
+            const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="%234f46e5"><rect width="512" height="512" rx="128" fill="%234f46e5"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="280">🎓</text></svg>`;
+            const iconUri = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgIcon);
+
+            const manifest = {
+                name: "Preu Futuro",
+                short_name: "PreuFuturo",
+                description: "Simuladores Preuniversitarios",
+                start_url: window.location.href,
+                display: "standalone",
+                background_color: "#ffffff",
+                theme_color: "#4f46e5",
+                icons: [
+                    { src: iconUri, sizes: "192x192", type: "image/svg+xml" },
+                    { src: iconUri, sizes: "512x512", type: "image/svg+xml" }
+                ]
+            };
+
+            const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+            const manifestUrl = URL.createObjectURL(manifestBlob);
+            
+            let link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = manifestUrl;
+            document.head.appendChild(link);
+
+            // Icono para Apple/Safari
+            let appleIcon = document.createElement('link');
+            appleIcon.rel = 'apple-touch-icon';
+            appleIcon.href = iconUri;
+            document.head.appendChild(appleIcon);
+        }
+
+        /* ==========================================
+           AUTENTICACIÓN Y NAVEGACIÓN
+           ========================================== */
+        function renderDemoCodes() {
+            const container = document.getElementById('demoCodesContainer');
+            container.innerHTML = state.codes.filter(c => c.active).map(c => `
+                <button type="button" onclick="fillDemoCode('${c.code}', '${c.name}')" class="px-2 py-1 bg-white hover:bg-brand-100 text-brand-700 font-mono text-[11px] font-bold rounded-lg border border-indigo-200 shadow-sm transition">
+                    ${c.code}
+                </button>
+            `).join('');
+        }
+
+        function fillDemoCode(code, name) {
+            document.getElementById('studentCodeInput').value = code;
+            document.getElementById('studentNameInput').value = name;
+        }
+
+        function switchLoginTab(tab) {
+            const studentBtn = document.getElementById('tabStudentBtn');
+            const adminBtn = document.getElementById('tabAdminBtn');
+            const studentForm = document.getElementById('studentLoginForm');
+            const adminForm = document.getElementById('adminLoginForm');
+
+            if (tab === 'student') {
+                studentBtn.className = "flex-1 py-2.5 rounded-xl transition-all duration-200 shadow bg-white text-brand-700 font-bold";
+                adminBtn.className = "flex-1 py-2.5 rounded-xl transition-all duration-200 text-slate-600 hover:text-slate-900 font-bold";
+                studentForm.classList.remove('hidden');
+                adminForm.classList.add('hidden');
+            } else {
+                adminBtn.className = "flex-1 py-2.5 rounded-xl transition-all duration-200 shadow bg-white text-brand-700 font-bold";
+                studentBtn.className = "flex-1 py-2.5 rounded-xl transition-all duration-200 text-slate-600 hover:text-slate-900 font-bold";
+                adminForm.classList.remove('hidden');
+                studentForm.classList.add('hidden');
+            }
+        }
+
+        function handleStudentLogin(e) {
+            e.preventDefault();
+            const name = document.getElementById('studentNameInput').value.trim();
+            const codeInput = document.getElementById('studentCodeInput').value.trim().toUpperCase();
+
+            const foundCode = state.codes.find(c => c.code === codeInput && c.active);
+
+            if (!foundCode) {
+                alert('El código ingresado no existe o ha sido desactivado por el administrador.');
+                return;
+            }
+
+            state.currentUser = {
+                role: 'student',
+                name: name || foundCode.name,
+                code: foundCode.code
+            };
+
+            showStudentDashboard();
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const pass = document.getElementById('adminPassInput').value.trim();
+            if (pass === 'admin2026') {
+                state.currentUser = { role: 'admin', name: 'Administrador' };
+                showAdminDashboard();
+            } else {
+                alert('Contraseña incorrecta. (Clave por defecto: admin2026)');
+            }
+        }
+
+        function logout() {
+            state.currentUser = null;
+            document.getElementById('mainHeader').classList.add('hidden');
+            document.getElementById('bottomNav').classList.add('hidden');
+            
+            document.getElementById('studentDashboard').classList.add('hidden');
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('quizScreen').classList.add('hidden');
+            document.getElementById('quizResultScreen').classList.add('hidden');
+            
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+
+        /* ==========================================
+           PANEL ESTUDIANTE
+           ========================================== */
+        function showStudentDashboard() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('quizScreen').classList.add('hidden');
+            document.getElementById('quizResultScreen').classList.add('hidden');
+            document.getElementById('adminDashboard').classList.add('hidden');
+
+            document.getElementById('mainHeader').classList.remove('hidden');
+            document.getElementById('bottomNav').classList.remove('hidden');
+            document.getElementById('studentDashboard').classList.remove('hidden');
+
+            document.getElementById('headerUserLabel').textContent = `${state.currentUser.name} (${state.currentUser.code})`;
+            document.getElementById('welcomeStudentName').textContent = `¡Hola, ${state.currentUser.name}!`;
+            document.getElementById('studentCodeBadge').textContent = `Código: ${state.currentUser.code}`;
+
+            renderStudentStats();
+            renderSubjectsList();
+            renderPersonalHistory();
+        }
+
+        function switchStudentTab(tab) {
+            const materiasBtn = document.getElementById('studentTabMateriasBtn');
+            const historialBtn = document.getElementById('studentTabHistorialBtn');
+            const materiasView = document.getElementById('studentMateriasView');
+            const historialView = document.getElementById('studentHistorialView');
+
+            if (tab === 'materias') {
+                materiasBtn.className = "py-2 px-4 text-xs font-bold border-b-2 border-brand-600 text-brand-600";
+                historialBtn.className = "py-2 px-4 text-xs font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-700";
+                materiasView.classList.remove('hidden');
+                historialView.classList.add('hidden');
+            } else {
+                historialBtn.className = "py-2 px-4 text-xs font-bold border-b-2 border-brand-600 text-brand-600";
+                materiasBtn.className = "py-2 px-4 text-xs font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-700";
+                historialView.classList.remove('hidden');
+                materiasView.classList.add('hidden');
+            }
+        }
+
+        function renderStudentStats() {
+            const myHistory = state.history.filter(h => h.code === state.currentUser.code);
+            const total = myHistory.length;
+            const avg = total > 0 ? Math.round(myHistory.reduce((acc, curr) => acc + curr.score, 0) / total) : 0;
+
+            document.getElementById('studentAvgScore').textContent = `${avg} / 100`;
+            document.getElementById('studentTotalTests').textContent = total;
+        }
+
+        function renderSubjectsList() {
+            const container = document.getElementById('subjectsListContainer');
+            container.innerHTML = DEFAULT_SUBJECTS.map(subj => {
+                const count = (state.questions[subj.id] || []).length;
+                return `
+                    <div onclick="startQuiz('${subj.id}')" class="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition active:scale-[0.99] cursor-pointer flex items-center justify-between group">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr ${subj.color} text-white flex items-center justify-center text-lg shadow-sm">
+                                <i class="fa-solid ${subj.icon}"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm group-hover:text-brand-600 transition">${subj.name}</h4>
+                                <p class="text-[11px] text-slate-400 font-medium">${count} preguntas disponibles</p>
+                            </div>
+                        </div>
+                        <span class="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-brand-50 group-hover:text-brand-600 flex items-center justify-center text-slate-400 text-xs transition">
+                            <i class="fa-solid fa-play ml-0.5"></i>
+                        </span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderPersonalHistory() {
+            const container = document.getElementById('personalHistoryContainer');
+            const myHistory = state.history.filter(h => h.code === state.currentUser.code).reverse();
+
+            if (myHistory.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Aún no has completado simulacros. ¡Comienza uno arriba!</p>`;
+                return;
+            }
+
+            container.innerHTML = myHistory.map(h => `
+                <div class="bg-white p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                    <div>
+                        <span class="font-bold text-slate-800 block">${h.subjectName}</span>
+                        <span class="text-[10px] text-slate-400">${h.date} • ${Math.floor(h.timeSpent / 60)}m ${h.timeSpent % 60}s</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-black text-sm ${h.score >= 70 ? 'text-emerald-600' : 'text-amber-600'}">${h.score} pts</span>
+                        <span class="text-[10px] text-slate-400 block">${h.correctCount}/${h.totalCount} aciertos</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        /* ==========================================
+           MOTOR DE SIMULACROS / EXÁMENES
+           ========================================== */
+        function startQuiz(subjectId) {
+            const subject = DEFAULT_SUBJECTS.find(s => s.id === subjectId);
+            const questions = state.questions[subjectId] || [];
+
+            if (questions.length === 0) {
+                alert('Esta materia no tiene preguntas cargadas.');
+                return;
+            }
+
+            state.activeQuiz = {
+                subjectId: subject.id,
+                subjectName: subject.name,
+                questions: JSON.parse(JSON.stringify(questions)), // Clonar
+                currentIndex: 0,
+                score: 0,
+                correctCount: 0,
+                userAnswers: [],
+                secondsSpent: 0,
+                timerInterval: null
+            };
+
+            document.getElementById('studentDashboard').classList.add('hidden');
+            document.getElementById('bottomNav').classList.add('hidden');
+            document.getElementById('quizScreen').classList.remove('hidden');
+
+            document.getElementById('quizSubjectTitle').textContent = subject.name;
+            
+            // Iniciar Temporizador
+            state.activeQuiz.timerInterval = setInterval(() => {
+                state.activeQuiz.secondsSpent++;
+                const mins = String(Math.floor(state.activeQuiz.secondsSpent / 60)).padStart(2, '0');
+                const secs = String(state.activeQuiz.secondsSpent % 60).padStart(2, '0');
+                document.getElementById('quizTimer').textContent = `${mins}:${secs}`;
+            }, 1000);
+
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const qState = state.activeQuiz;
+            const currentQ = qState.questions[qState.currentIndex];
+            const total = qState.questions.length;
+
+            document.getElementById('quizProgressText').textContent = `Pregunta ${qState.currentIndex + 1} de ${total}`;
+            document.getElementById('quizProgressBar').style.width = `${((qState.currentIndex + 1) / total) * 100}%`;
+
+            document.getElementById('currentQuestionNum').textContent = qState.currentIndex + 1;
+            document.getElementById('questionText').textContent = currentQ.q;
+
+            // Ocultar feedback
+            const feedbackBox = document.getElementById('feedbackBox');
+            feedbackBox.classList.add('hidden');
+
+            // Render opciones
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = currentQ.options.map((opt, idx) => `
+                <button onclick="selectOption(${idx})" id="opt-btn-${idx}" class="w-full p-3 text-left rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50/50 text-xs font-semibold text-slate-700 transition flex items-start space-x-2.5">
+                    <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-600 font-bold flex items-center justify-center text-[10px] shrink-0 border border-slate-300">
+                        ${String.fromCharCode(65 + idx)}
+                    </span>
+                    <span class="flex-1 mt-0.5">${opt}</span>
+                </button>
+            `).join('');
+
+            const nextBtn = document.getElementById('nextQuestionBtn');
+            nextBtn.disabled = true;
+            nextBtn.className = "w-full py-3 bg-slate-200 text-slate-400 font-bold rounded-xl transition flex items-center justify-center space-x-2 text-sm";
+            nextBtn.querySelector('span').textContent = (qState.currentIndex + 1 === total) ? "Finalizar Simulacro" : "Siguiente Pregunta";
+        }
+
+        function selectOption(selectedIndex) {
+            const qState = state.activeQuiz;
+            const currentQ = qState.questions[qState.currentIndex];
+
+            // Deshabilitar todos los botones de opciones
+            currentQ.options.forEach((_, idx) => {
+                const btn = document.getElementById(`opt-btn-${idx}`);
+                btn.disabled = true;
+                btn.classList.remove('hover:border-brand-500', 'hover:bg-brand-50/50');
+            });
+
+            const isCorrect = (selectedIndex === currentQ.correct);
+            if (isCorrect) {
+                qState.correctCount++;
+            }
+
+            // Resaltar seleccionado y correcto
+            const selectedBtn = document.getElementById(`opt-btn-${selectedIndex}`);
+            const correctBtn = document.getElementById(`opt-btn-${currentQ.correct}`);
+
+            if (isCorrect) {
+                selectedBtn.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-900');
+            } else {
+                selectedBtn.classList.add('bg-red-50', 'border-red-400', 'text-red-900');
+                correctBtn.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-900');
+            }
+
+            // Mostrar caja de explicación
+            const feedbackBox = document.getElementById('feedbackBox');
+            const feedbackStatus = document.getElementById('feedbackStatus');
+            const feedbackText = document.getElementById('feedbackText');
+
+            feedbackBox.classList.remove('hidden');
+            if (isCorrect) {
+                feedbackBox.className = "mt-4 p-3.5 rounded-xl text-xs leading-relaxed bg-emerald-50 border border-emerald-200";
+                feedbackStatus.className = "font-bold flex items-center text-emerald-700 mb-1";
+                feedbackStatus.innerHTML = `<i class="fa-solid fa-circle-check mr-1.5 text-sm"></i> ¡Correcto! (+${Math.round(100/qState.questions.length)} pts)`;
+            } else {
+                feedbackBox.className = "mt-4 p-3.5 rounded-xl text-xs leading-relaxed bg-amber-50 border border-amber-200";
+                feedbackStatus.className = "font-bold flex items-center text-amber-800 mb-1";
+                feedbackStatus.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1.5 text-sm"></i> Incorrecto`;
+            }
+            feedbackText.textContent = currentQ.explanation;
+
+            // Habilitar botón Siguiente
+            const nextBtn = document.getElementById('nextQuestionBtn');
+            nextBtn.disabled = false;
+            nextBtn.className = "w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center space-x-2 text-sm";
+        }
+
+        function nextQuestion() {
+            const qState = state.activeQuiz;
+            qState.currentIndex++;
+
+            if (qState.currentIndex < qState.questions.length) {
+                renderQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            const qState = state.activeQuiz;
+            clearInterval(qState.timerInterval);
+
+            const totalQ = qState.questions.length;
+            const finalScore = Math.round((qState.correctCount / totalQ) * 100);
+
+            // Guardar registro
+            const newRecord = {
+                id: Date.now(),
+                code: state.currentUser.code,
+                studentName: state.currentUser.name,
+                subjectId: qState.subjectId,
+                subjectName: qState.subjectName,
+                score: finalScore,
+                correctCount: qState.correctCount,
+                totalCount: totalQ,
+                timeSpent: qState.secondsSpent,
+                date: new Date().toISOString().replace('T', ' ').substring(0, 16)
+            };
+
+            state.history.push(newRecord);
+            saveStore();
+
+            // Renderizar Pantalla Resultados
+            document.getElementById('quizScreen').classList.add('hidden');
+            document.getElementById('quizResultScreen').classList.remove('hidden');
+
+            const iconBadge = document.getElementById('resultIconBadge');
+            if (finalScore >= 80) {
+                iconBadge.className = "w-24 h-24 rounded-full flex items-center justify-center text-5xl mb-4 shadow-xl bg-emerald-100 text-emerald-600 border-emerald-300";
+                iconBadge.textContent = "🏆";
+                document.getElementById('resultTitle').textContent = "¡Excelente Trabajo!";
+            } else if (finalScore >= 60) {
+                iconBadge.className = "w-24 h-24 rounded-full flex items-center justify-center text-5xl mb-4 shadow-xl bg-amber-100 text-amber-600 border-amber-300";
+                iconBadge.textContent = "⚡";
+                document.getElementById('resultTitle').textContent = "¡Buen Intento!";
+            } else {
+                iconBadge.className = "w-24 h-24 rounded-full flex items-center justify-center text-5xl mb-4 shadow-xl bg-red-100 text-red-600 border-red-300";
+                iconBadge.textContent = "📖";
+                document.getElementById('resultTitle').textContent = "Sigue Practicando";
+            }
+
+            document.getElementById('resultSubject').textContent = qState.subjectName;
+            document.getElementById('resultScore').textContent = `${finalScore} / 100`;
+            document.getElementById('resultScoreBar').style.width = `${finalScore}%`;
+            document.getElementById('resultCorrectCount').textContent = `${qState.correctCount} / ${totalQ}`;
+            
+            const mins = Math.floor(qState.secondsSpent / 60);
+            const secs = qState.secondsSpent % 60;
+            document.getElementById('resultTimeSpent').textContent = `${mins}m ${secs}s`;
+        }
+
+        function confirmExitQuiz() {
+            if (confirm('¿Deseas salir del simulacro actual? El progreso no se guardará.')) {
+                if (state.activeQuiz && state.activeQuiz.timerInterval) {
+                    clearInterval(state.activeQuiz.timerInterval);
+                }
+                showStudentDashboard();
+            }
+        }
+
+        /* ==========================================
+           PANEL DE ADMINISTRADOR
+           ========================================== */
+        function showAdminDashboard() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('studentDashboard').classList.add('hidden');
+            document.getElementById('quizScreen').classList.add('hidden');
+            document.getElementById('quizResultScreen').classList.add('hidden');
+            document.getElementById('bottomNav').classList.add('hidden');
+
+            document.getElementById('mainHeader').classList.remove('hidden');
+            document.getElementById('adminDashboard').classList.remove('hidden');
+
+            document.getElementById('headerUserLabel').textContent = "Modo Administrador";
+
+            renderAdminCodes();
+            renderAdminPerformance();
+        }
+
+        function switchAdminTab(tab) {
+            const btnCodigos = document.getElementById('adminTabCodigosBtn');
+            const btnRendimiento = document.getElementById('adminTabRendimientoBtn');
+            const btnPreguntas = document.getElementById('adminTabPreguntasBtn');
+
+            const viewCodigos = document.getElementById('adminCodigosView');
+            const viewRendimiento = document.getElementById('adminRendimientoView');
+            const viewPreguntas = document.getElementById('adminPreguntasView');
+
+            [btnCodigos, btnRendimiento, btnPreguntas].forEach(b => b.className = "py-2 px-3 text-xs font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-700");
+            [viewCodigos, viewRendimiento, viewPreguntas].forEach(v => v.classList.add('hidden'));
+
+            if (tab === 'codigos') {
+                btnCodigos.className = "py-2 px-3 text-xs font-bold border-b-2 border-brand-600 text-brand-600";
+                viewCodigos.classList.remove('hidden');
+            } else if (tab === 'rendimiento') {
+                btnRendimiento.className = "py-2 px-3 text-xs font-bold border-b-2 border-brand-600 text-brand-600";
+                viewRendimiento.classList.remove('hidden');
+                renderAdminPerformance();
+            } else {
+                btnPreguntas.className = "py-2 px-3 text-xs font-bold border-b-2 border-brand-600 text-brand-600";
+                viewPreguntas.classList.remove('hidden');
+            }
+        }
+
+        function renderAdminCodes() {
+            document.getElementById('totalCodesCount').textContent = state.codes.length;
+            const container = document.getElementById('adminCodesList');
+
+            container.innerHTML = state.codes.map((item, index) => `
+                <div class="p-3 flex justify-between items-center bg-white hover:bg-slate-50">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-mono font-bold text-slate-900 text-xs">${item.code}</span>
+                            <span class="px-1.5 py-0.2 text-[9px] font-bold rounded ${item.active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}">
+                                ${item.active ? 'Activo' : 'Inactivo'}
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-0.5">${item.name} • <span class="text-slate-400">${item.group}</span></p>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="copyToClipboard('${item.code}')" class="p-1.5 text-slate-400 hover:text-brand-600 rounded" title="Copiar código">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                        <button onclick="toggleCodeStatus(${index})" class="p-1.5 text-slate-400 hover:text-amber-600 rounded" title="Cambiar estado">
+                            <i class="fa-solid fa-power-off"></i>
+                        </button>
+                        <button onclick="deleteCode(${index})" class="p-1.5 text-slate-400 hover:text-red-600 rounded" title="Eliminar">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function handleCreateCode(e) {
+            e.preventDefault();
+            const name = document.getElementById('newCodeName').value.trim();
+            const customCode = document.getElementById('newCodeCustom').value.trim().toUpperCase();
+
+            const finalCode = customCode || `PREU-${Math.floor(1000 + Math.random() * 9000)}`;
+
+            if (state.codes.some(c => c.code === finalCode)) {
+                alert('Este código ya existe. Intenta con otro.');
+                return;
+            }
+
+            state.codes.push({
+                code: finalCode,
+                name: name,
+                group: 'Asignación Directa',
+                active: true,
+                createdAt: new Date().toISOString().substring(0, 10)
+            });
+
+            saveStore();
+            renderAdminCodes();
+            renderDemoCodes();
+
+            document.getElementById('newCodeName').value = '';
+            document.getElementById('newCodeCustom').value = '';
+            alert(`Código '${finalCode}' creado exitosamente para ${name}.`);
+        }
+
+        function toggleCodeStatus(index) {
+            state.codes[index].active = !state.codes[index].active;
+            saveStore();
+            renderAdminCodes();
+            renderDemoCodes();
+        }
+
+        function deleteCode(index) {
+            if (confirm(`¿Eliminar el código ${state.codes[index].code}?`)) {
+                state.codes.splice(index, 1);
+                saveStore();
+                renderAdminCodes();
+                renderDemoCodes();
+            }
+        }
+
+        function renderAdminPerformance() {
+            const totalStudents = state.codes.length;
+            const totalTests = state.history.length;
+            const globalAvg = totalTests > 0 ? Math.round(state.history.reduce((a, b) => a + b.score, 0) / totalTests) : 0;
+
+            document.getElementById('adminStatStudents').textContent = totalStudents;
+            document.getElementById('adminStatTotalTests').textContent = totalTests;
+            document.getElementById('adminStatAvg').textContent = `${globalAvg} pts`;
+
+            const table = document.getElementById('adminPerformanceTable');
+            table.innerHTML = state.codes.map(c => {
+                const studentHistory = state.history.filter(h => h.code === c.code);
+                const count = studentHistory.length;
+                const avg = count > 0 ? Math.round(studentHistory.reduce((a, b) => a + b.score, 0) / count) : 0;
+
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 font-semibold text-slate-800">${c.name}</td>
+                        <td class="p-3 font-mono text-slate-500">${c.code}</td>
+                        <td class="p-3 font-medium text-slate-600">${count} simulacros</td>
+                        <td class="p-3">
+                            <span class="font-bold px-2 py-0.5 rounded text-[11px] ${avg >= 70 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                                ${avg} pts
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function handleAddQuestion(e) {
+            e.preventDefault();
+            const subjectId = document.getElementById('newQSubject').value;
+            const text = document.getElementById('newQText').value.trim();
+            const opt0 = document.getElementById('newQOpt0').value.trim();
+            const opt1 = document.getElementById('newQOpt1').value.trim();
+            const opt2 = document.getElementById('newQOpt2').value.trim();
+            const opt3 = document.getElementById('newQOpt3').value.trim();
+            const correct = parseInt(document.getElementById('newQCorrect').value);
+            const explanation = document.getElementById('newQExplanation').value.trim();
+
+            if (!state.questions[subjectId]) state.questions[subjectId] = [];
+
+            state.questions[subjectId].push({
+                q: text,
+                options: [opt0, opt1, opt2, opt3],
+                correct: correct,
+                explanation: explanation
+            });
+
+            saveStore();
+            alert('¡Nueva pregunta agregada exitosamente al banco!');
+            e.target.reset();
+        }
+
+        /* ==========================================
+           UTILIDADES Y PWA UTILS
+           ========================================== */
+        function togglePWAInstallModal() {
+            const modal = document.getElementById('pwaModal');
+            modal.classList.toggle('hidden');
+        }
+
+        function copyToClipboard(text) {
+            const tempInput = document.createElement('input');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            alert(`Código '${text}' copiado al portapapeles.`);
+        }
+
+        // Inicialización al cargar página
+        window.onload = function() {
+            initStore();
+            setupPWA();
+        };
+    </script>
+</body>
+</html>
